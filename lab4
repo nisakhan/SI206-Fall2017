@@ -1,0 +1,11 @@
+import re
+
+with open ("mbox-short.txt", "r") as data:
+    data = data.readlines()
+    for x in data:
+        if re.search("From",x):
+            print(x)
+            numbers = re.findall("[0-9]+", x)
+            print(numbers)
+            name = re.findall("(\S*@)", x)
+            print(name)
