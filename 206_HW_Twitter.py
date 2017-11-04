@@ -5,8 +5,9 @@ import json
 
 ## SI 206 - HW
 ## COMMENT WITH:
-## Your section day/time:
-## Any names of people you worked with on this assignment:
+## Nisa Khan
+## Your section day/time: Thursdays 3-4
+## Any names of people you worked with on this assignment: Got help from Ilma Bilic
 
 
 ## Write code that uses the tweepy library to search for tweets with three different phrases of the
@@ -64,13 +65,20 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 ## 1. Set up the caching pattern start -- the dictionary and the try/except
 ## 		statement shown in class.
 
+CACHE_FNAME = "cache_tweet_info.json" #Creating a string
+
 try:
-    fo = open("my_feed.json")
-    my_posts_raw = fo.read()
-    posts_in_json = json.loads(my_posts_raw)
+    fo = open(CACHE_FNAME, "r") #open file
+    cache_contents = fo.read() #read
+    CACHE_DICTION = json.loads(cache_contents)
     fo.close()
+    # my_posts_raw = fo.read() #into a string
+    # posts_in_json = json.loads(my_posts_raw)
+    # fo.close() #close
 except:
-    post_in_json = {}
+    CACHE_DICTION = {} #empty
+    # post_in_json = {} #empty
+
 
 ## 2. Write a function to get twitter data that works with the caching pattern,
 ## 		so it either gets new data or caches data, depending upon what the input
@@ -78,7 +86,7 @@ except:
 
 def get_t(search_term):
     data = json.loads(search_term)
-    print(data)
+    print(data) #print search terms
 
 ## 3. Using a loop, invoke your function, save the return value in a variable, and explore the
 ##		data you got back!
@@ -87,3 +95,31 @@ def get_t(search_term):
 ## 4. With what you learn from the data -- e.g. how exactly to find the
 ##		text of each tweet in the big nested structure -- write code to print out
 ## 		content from 5 tweets, as shown in the linked example.
+
+def getTwitterWithCaching(search_term):
+    full_url = "twitter_{}".format(search_term)
+    if full_url in CACHE_DICTION:
+        print("Data in cache")
+        print("\n")
+        return CACHE_DICTION[full_url]
+    else:
+        twitter_result = api.search(q = full_url, count = 5)
+        try:
+            CACHE_DICTION[full_url] = twitter_result #passing results into full_urls
+            cache_tweet_info = json.dumps(CACHE_DICTION) #passing in data into json file
+            fo = open(CACHE_FNAME, "w")
+            fo.write(cache_tweet_info) #write to the file
+            fo.close() #closed
+            return CACHE_DICTION[full_url]
+        except:
+            print("Not in cache")
+            return None
+
+for i in range(3):
+    search_term = input("Enter Tweet term: ") #entering keywords
+    twitter_result = getTwitterWithCaching(search_term)
+    for r in twitter_result["statuses"][:5]:
+        ##  going through texts, priting out tweets
+        print("TEXT:", r["text"])
+        print("CREATED AT:", r["created_at"])
+        print("\n")
