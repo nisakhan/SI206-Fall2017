@@ -72,7 +72,22 @@ CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # mentioned in the umich timeline, that Twitter user's info should be
 # in the Users table, etc.
 
+# def create_database(db_file):
+# 	try:
+# 		conn = sqlite3.connect(db_file)
+# 		print(sqlite3.version)
+# 	except Error as e:
+# 		print(e)
+# 	finally:
+# 		conn.close()
+#
+# if __name__ == '__main__':
+#     create_database("C:\\sqlite\db\pythonsqlite.db")
 
+db = sqlite3.connect("database.db")
+db.execute("Tweets")
+db.execute("Users")
+# db.execute("create person person (firstname text, secondname text, age int)")
 
 ## You should load into the Tweets table:
 # Info about all the tweets (at least 20) that you gather from the
