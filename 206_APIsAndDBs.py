@@ -72,22 +72,29 @@ CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # mentioned in the umich timeline, that Twitter user's info should be
 # in the Users table, etc.
 
-# def create_database(db_file):
-# 	try:
-# 		conn = sqlite3.connect(db_file)
-# 		print(sqlite3.version)
-# 	except Error as e:
-# 		print(e)
-# 	finally:
-# 		conn.close()
-#
-# if __name__ == '__main__':
-#     create_database("C:\\sqlite\db\pythonsqlite.db")
+table_1 = [('Tweets', tweet_id, text_1, user_posted, time_posted, retweets)]
+table_2 = [('Users', user_id, screen_name, num_fav, description)]
+connecting = sqlite3.connect(':memory:')
+vari = connecting.cursor()
+vari.execute('''CREATE TABLE MY_TABLE_1 (header TEXT, tweet_id TEXT, text_1 TEXT, user_posted TEXT, time_posted REAL,
+			  retweets REAL )''' )
+vari.execute('''CREATE TABLE MY_TABLE_2 (header TEXT, user_id REAL, screen_name TEXT, num_fav REAL, description TEXT )''' )
 
-db = sqlite3.connect("database.db")
-db.execute("Tweets")
-db.execute("Users")
-# db.execute("create person person (firstname text, secondname text, age int)")
+for x in table_1:
+	vari.execute('''INSERT INTO MY_TABLE_1 VALUES(?,?,?)''',x)
+for x in table_2:
+	vari.execute('''INSERT INTO MY_TABLE_2 VALUES(?,?,?)''',x)
+
+connecting.commit()
+vari.execute('SELECT* FROM MY_TABLE_1')
+
+for entry in vari:
+	print(entry)
+
+vari.execute('SELECT* FROM MY_TABLE_2')
+
+for entry in vari:
+	print(entry)
 
 ## You should load into the Tweets table:
 # Info about all the tweets (at least 20) that you gather from the
