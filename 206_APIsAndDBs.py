@@ -18,7 +18,7 @@ import twitter_info # same deal as always...
 import json
 import sqlite3
 
-## Your name: Nisa Khan
+## Your name: Nisa Khan (nisakhan@umich.edu)
 ## The names of anyone you worked with on this project:
 
 #####
@@ -50,18 +50,28 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # Put the rest of your caching setup here:
 
+try:
+	cache_file = open(CACHE_FNAME,'r')
+	cache_contents = cache_file.read()
+	cache_file.close()
+	CACHE_DICTION = json.loads(cache_contents)
+except:
+	CACHE_DICTION = {}
 
 
 # Define your function get_user_tweets here:
 
-
-
-
+def get_user_tweets(user):
+	x = api.user_timeline(screen_name = user)
+	for i in x:
+		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["id"])
+		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["user"]["description"])
+		exit()
 
 # Write an invocation to the function for the "umich" user timeline and
 # save the result in a variable called umich_tweets:
 
-
+get_user_tweets("umich")
 
 
 ## Task 2 - Creating database and loading data into database
@@ -72,29 +82,29 @@ CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # mentioned in the umich timeline, that Twitter user's info should be
 # in the Users table, etc.
 
-table_1 = [('Tweets', tweet_id, text_1, user_posted, time_posted, retweets)]
-table_2 = [('Users', user_id, screen_name, num_fav, description)]
-connecting = sqlite3.connect(':memory:')
-vari = connecting.cursor()
-vari.execute('''CREATE TABLE MY_TABLE_1 (header TEXT, tweet_id TEXT, text_1 TEXT, user_posted TEXT, time_posted REAL,
-			  retweets REAL )''' )
-vari.execute('''CREATE TABLE MY_TABLE_2 (header TEXT, user_id REAL, screen_name TEXT, num_fav REAL, description TEXT )''' )
-
-for x in table_1:
-	vari.execute('''INSERT INTO MY_TABLE_1 VALUES(?,?,?)''',x)
-for x in table_2:
-	vari.execute('''INSERT INTO MY_TABLE_2 VALUES(?,?,?)''',x)
-
-connecting.commit()
-vari.execute('SELECT* FROM MY_TABLE_1')
-
-for entry in vari:
-	print(entry)
-
-vari.execute('SELECT* FROM MY_TABLE_2')
-
-for entry in vari:
-	print(entry)
+# table_1 = [('Tweets', tweet_id, text_1, user_posted, time_posted, retweets)]
+# table_2 = [('Users', user_id, screen_name, num_fav, description)]
+# connecting = sqlite3.connect(':memory:')
+# vari = connecting.cursor()
+# vari.execute('''CREATE TABLE TWEETS (tweet_id TEXT, text_1 TEXT, user_posted TEXT, time_posted DATETIME,
+# 			  retweets INTEGER )''' )
+# vari.execute('''CREATE TABLE USERS (user_id INTEGER, screen_name TEXT, num_fav INTEGER, description TEXT )''' )
+#
+# for x in table_1:
+# 	vari.execute('''INSERT INTO TWEETS VALUES(?,?,?)''',x)
+# for x in table_2:
+# 	vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',x)
+#
+# connecting.commit()
+# vari.execute('SELECT* FROM TWEETS')
+#
+# for entry in vari:
+# 	print(entry)
+#
+# vari.execute('SELECT* FROM USERS')
+#
+# for entry in vari:
+# 	print(entry)
 
 ## You should load into the Tweets table:
 # Info about all the tweets (at least 20) that you gather from the
