@@ -67,6 +67,7 @@ def get_user_tweets(user):
 		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["id"])
 		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["user"]["description"])
 		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["user"]["description"])
+		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["user"]["description"])
 		exit()
 
 # Write an invocation to the function for the "umich" user timeline and
