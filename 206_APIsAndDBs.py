@@ -61,19 +61,31 @@ except:
 
 # Define your function get_user_tweets here:
 
+#Caching after going through user_timeline
 def get_user_tweets(user):
-	x = api.user_timeline(screen_name = user)
-	for i in x:
-		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["id"])
-		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["user"]["description"])
-		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["user"]["description"])
-		vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',i["user"]["description"])
-		exit()
+	if user in CACHE_DICTION:
+		print("using cached data")
+		x = CACHE_DICTION["user"]
+	else:
+		x = api.user_timeline(screen_name = user, count = 20)
+		for i in x:
+			#Going through Users and Tweets and grabbing data by indexing
+			tup = (i["user"]['id_str'], i["user"]["screen_name"], i["user"]["favourites_count"], i["user"]["description"])
+			cur.execute('INSERT OR IGNORE INTO Users VALUES(?,?,?,?)',tup)
+			for k in i["entities"]["user_mentions"]:
+				user_mentions = (k["id"], k["screen_name"], "x","x")
+				cur.execute("INSERT OR IGNORE INTO Users VALUES(?,?,?,?)", user_mentions)
+		for j in x:
+			tup2 = (j["id_str"], j["text"], j["user"]["id_str"], j["created_at"], j["retweet_count"])
+			cur.execute('''INSERT OR IGNORE INTO Tweets VALUES(?,?,?,?,?)''',tup2)
+		CACHE_DICTION["user"] = x
+		f = open(CACHE_FNAME, 'w')
+		f.write(json.dumps(CACHE_DICTION))
+		f.close()
+	return(x)
 
 # Write an invocation to the function for the "umich" user timeline and
 # save the result in a variable called umich_tweets:
-
-get_user_tweets("umich")
 
 
 ## Task 2 - Creating database and loading data into database
@@ -84,29 +96,17 @@ get_user_tweets("umich")
 # mentioned in the umich timeline, that Twitter user's info should be
 # in the Users table, etc.
 
-# table_1 = [('Tweets', tweet_id, text_1, user_posted, time_posted, retweets)]
-# table_2 = [('Users', user_id, screen_name, num_fav, description)]
-# connecting = sqlite3.connect(':memory:')
-# vari = connecting.cursor()
-# vari.execute('''CREATE TABLE TWEETS (tweet_id TEXT, text_1 TEXT, user_posted TEXT, time_posted DATETIME,
-# 			  retweets INTEGER )''' )
-# vari.execute('''CREATE TABLE USERS (user_id INTEGER, screen_name TEXT, num_fav INTEGER, description TEXT )''' )
-#
-# for x in table_1:
-# 	vari.execute('''INSERT INTO TWEETS VALUES(?,?,?)''',x)
-# for x in table_2:
-# 	vari.execute('''INSERT INTO USERS VALUES(?,?,?)''',x)
-#
-# connecting.commit()
-# vari.execute('SELECT* FROM TWEETS')
-#
-# for entry in vari:
-# 	print(entry)
-#
-# vari.execute('SELECT* FROM USERS')
-#
-# for entry in vari:
-# 	print(entry)
+#Creating Users and Tweets table, inserting info into these databases and tables
+connecting = sqlite3.connect('206_APIsAndDBs.sqlite')
+cur = connecting.cursor()
+cur.execute("DROP TABLE IF EXISTS Tweets")
+cur.execute("DROP TABLE IF EXISTS Users")
+cur.execute("CREATE TABLE Tweets (tweet_id TEXT NOT NULL PRIMARY KEY UNIQUE, text_1 TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER)")
+cur.execute('CREATE TABLE Users (user_id TEXT NOT NULL PRIMARY KEY UNIQUE, screen_name TEXT, num_fav INTEGER, description TEXT )')
+cur.execute('SELECT* FROM Tweets')
+cur.execute('SELECT* FROM Users')
+umich_tweets = get_user_tweets("umich")
+# cur.close()
 
 ## You should load into the Tweets table:
 # Info about all the tweets (at least 20) that you gather from the
@@ -132,40 +132,58 @@ get_user_tweets("umich")
 
 # Make a query to select all of the records in the Users database.
 # Save the list of tuples in a variable called users_info.
-
-users_info = True
+#Creating SQL statements to grab certain information.
+#User info tuples
+cur.execute("SELECT* FROM Users")
+users_info = cur.fetchall()
 
 # Make a query to select all of the user screen names from the database.
 # Save a resulting list of strings (NOT tuples, the strings inside them!)
 # in the variable screen_names. HINT: a list comprehension will make
 # this easier to complete!
-screen_names = True
-
+#Screen name strings
+cur.execute("SELECT* FROM Users")
+funct1 = cur.fetchall()
+screen_names = ([i for tup in funct1 for i in tup])
 
 # Make a query to select all of the tweets (full rows of tweet information)
 # that have been retweeted more than 10 times. Save the result
 # (a list of tuples, or an empty list) in a variable called retweets.
-retweets = True
-
+#Many retweets
+cur.execute("SELECT* FROM Tweets WHERE retweets >10")
+retweets = cur.fetchall()
+#print(retweets[1][-1])
 
 # Make a query to select all the descriptions (descriptions only) of
 # the users who have favorited more than 500 tweets. Access all those
 # strings, and save them in a variable called favorites,
 # which should ultimately be a list of strings.
-favorites = True
+#500 favorite tweets
+cur.execute("SELECT description FROM Users WHERE num_fav > 500")
+list_fav = cur.fetchall()
+favorites = []
+for fav in list_fav:
+	if fav != None:
+		favorites.append(str(fav[0]))
 
 
 # Make a query using an INNER JOIN to get a list of tuples with 2
 # elements in each tuple: the user screenname and the text of the
-# tweet. Save the resulting list of tuples in a variable called joined_data2.
-joined_data = True
+# tweet. Save the resulting list of tuples in a variable called joined_data
+cur.execute("SELECT Users.screen_name, Tweets.text_1 FROM Users INNER JOIN Tweets ON Tweets.user_posted = Users.user_id")
+joined_data = cur.fetchall()
+#print(joined_data)
+# screen_names = ([i for tup in funct2 for i in tup])
 
 # Make a query using an INNER JOIN to get a list of tuples with 2
 # elements in each tuple: the user screenname and the text of the
 # tweet in descending order based on retweets. Save the resulting
 # list of tuples in a variable called joined_data2.
+cur.execute("SELECT Users.screen_name, Tweets.text_1 FROM Users INNER JOIN Tweets ON Tweets.user_posted = Users.user_id ORDER BY Tweets.retweets DESC")
+joined_data2 = cur.fetchall()
+connecting.commit()
 
-joined_data2 = True
+#The above two and creating joined strings based on retweets and screennames by using the SQL statements
 
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END
