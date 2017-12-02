@@ -18,7 +18,7 @@ import twitter_info # same deal as always...
 import json
 import sqlite3
 
-## Your name: Nisa Khan (nisakhan@umich.edu)
+## Your name: M Nisa Khan (nisakhan@umich.edu)
 ## The names of anyone you worked with on this project:
 
 #####
